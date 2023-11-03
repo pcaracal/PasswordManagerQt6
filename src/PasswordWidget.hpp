@@ -28,6 +28,10 @@ private:
   void createNewItem();
 
   void editItem(const int &index);
+
+  void save();
+
+  void deleteInput();
 };
 
 
