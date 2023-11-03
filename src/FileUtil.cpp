@@ -28,9 +28,12 @@ void FileUtil::write_file(const std::string &path, const std::string &content) {
 
 json FileUtil::read_json(const std::string &path) {
   std::ifstream f(path);
-  json j;
-  f >> j;
-  return j;
+  if (f.is_open()) {
+    json j;
+    f >> j;
+    return j;
+  }
+  return nullptr;
 }
 
 void FileUtil::write_json(const std::string &path, const json &content) {

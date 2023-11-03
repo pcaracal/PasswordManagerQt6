@@ -37,6 +37,12 @@ void AppMainWindow::loginScreen() {
     this->username = login->getUsername();
 
     json data = FileUtil::read_json(DEVELOPMENT_DATA_PATH);
+
+    if (data == nullptr) {
+      login->notifyText("Data file not found", "red");
+      return;
+    }
+
     std::string username_salt = data["username_salt"];
     std::string password_salt = data["password_salt"];
 
@@ -77,6 +83,9 @@ void AppMainWindow::loginScreen() {
     data["password_salt"] = password_salt;
 
     FileUtil::write_json(DEVELOPMENT_DATA_PATH, data);
+
+    login->deleteLater();
+    passwordScreen();
   });
 }
 
