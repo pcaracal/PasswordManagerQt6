@@ -53,7 +53,6 @@ void PasswordWidget::createList() {
 
   connect(list, &QListWidget::itemClicked, this, [=, this](QListWidgetItem *item) {
     editItem(list->row(item));
-//    qDebug() << list->row(item);
   });
 
   layout->addWidget(list, 0, 0, 1, 2);
@@ -71,7 +70,6 @@ void PasswordWidget::editItem(const int &index) {
       }
     }
   }
-
 
   std::string oName, oUsername, oPassword;
   json j = FileUtil::read_json(this->dataFilePath);
@@ -112,70 +110,63 @@ void PasswordWidget::editItem(const int &index) {
   layout->addWidget(deleteButton, 6, 0, 1, 2);
 
   connect(saveButton, &QPushButton::clicked, this, [=, this]() {
-    std::string nName = nameInput->text().toStdString();
-    std::string nUsername = usernameInput->text().toStdString();
-    std::string nPassword = passwordInput->text().toStdString();
-
-    std::string unixMillis = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count());
-
-    json j = FileUtil::read_json(this->dataFilePath);
-    j["data"][index]["name"] = StringUtil::aes_encrypt(
-        nName + StringUtil::sha3_512(StringUtil::generate_salt()),
-        this->password);
-    j["data"][index]["username"] = StringUtil::aes_encrypt(
-        nUsername + StringUtil::sha3_512(StringUtil::generate_salt()),
-        this->password);
-    j["data"][index]["password"] = StringUtil::aes_encrypt(
-        nPassword + StringUtil::sha3_512(StringUtil::generate_salt()),
-        this->password);
-    FileUtil::write_json(this->dataFilePath, j);
-
-    createList();
-
-    findChild<QPushButton *>("addItemButton")->show();
-    nameInput->deleteLater();
-    nameLabel->deleteLater();
-    usernameInput->deleteLater();
-    usernameLabel->deleteLater();
-    passwordInput->deleteLater();
-    passwordLabel->deleteLater();
-    saveButton->deleteLater();
-    cancelButton->deleteLater();
-    deleteButton->deleteLater();
+    save_edit(index);
   });
-
   connect(cancelButton, &QPushButton::clicked, this, [=, this]() {
-    findChild<QPushButton *>("addItemButton")->show();
-    nameInput->deleteLater();
-    nameLabel->deleteLater();
-    usernameInput->deleteLater();
-    usernameLabel->deleteLater();
-    passwordInput->deleteLater();
-    passwordLabel->deleteLater();
-    saveButton->deleteLater();
-    cancelButton->deleteLater();
     deleteButton->deleteLater();
+    deleteInput();
   });
-
   connect(deleteButton, &QPushButton::clicked, this, [=, this]() {
     json j = FileUtil::read_json(this->dataFilePath);
     j["data"].erase(j["data"].begin() + index);
     FileUtil::write_json(this->dataFilePath, j);
 
     createList();
-
-    findChild<QPushButton *>("addItemButton")->show();
-    nameInput->deleteLater();
-    nameLabel->deleteLater();
-    usernameInput->deleteLater();
-    usernameLabel->deleteLater();
-    passwordInput->deleteLater();
-    passwordLabel->deleteLater();
-    saveButton->deleteLater();
-    cancelButton->deleteLater();
     deleteButton->deleteLater();
+    deleteInput();
   });
+
+  connect(nameInput, &QLineEdit::returnPressed, this, [=, this]() {
+    save_edit(index);
+  });
+  connect(usernameInput, &QLineEdit::returnPressed, this, [=, this]() {
+    save_edit(index);
+  });
+  connect(passwordInput, &QLineEdit::returnPressed, this, [=, this]() {
+    save_edit(index);
+  });
+}
+
+void PasswordWidget::save_edit(const int &index) {
+  auto *layout = dynamic_cast<QGridLayout *>(this->layout());
+
+  auto *nameInput = dynamic_cast<QLineEdit *>(layout->itemAtPosition(2, 1)->widget());
+  auto *usernameInput = dynamic_cast<QLineEdit *>(layout->itemAtPosition(3, 1)->widget());
+  auto *passwordInput = dynamic_cast<QLineEdit *>(layout->itemAtPosition(4, 1)->widget());
+  auto *deleteButton = dynamic_cast<QPushButton *>(layout->itemAtPosition(6, 0)->widget());
+
+  std::string nName = nameInput->text().toStdString();
+  std::string nUsername = usernameInput->text().toStdString();
+  std::string nPassword = passwordInput->text().toStdString();
+
+  std::string unixMillis = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::system_clock::now().time_since_epoch()).count());
+
+  json j = FileUtil::read_json(this->dataFilePath);
+  j["data"][index]["name"] = StringUtil::aes_encrypt(
+      nName + StringUtil::sha3_512(StringUtil::generate_salt()),
+      this->password);
+  j["data"][index]["username"] = StringUtil::aes_encrypt(
+      nUsername + StringUtil::sha3_512(StringUtil::generate_salt()),
+      this->password);
+  j["data"][index]["password"] = StringUtil::aes_encrypt(
+      nPassword + StringUtil::sha3_512(StringUtil::generate_salt()),
+      this->password);
+  FileUtil::write_json(this->dataFilePath, j);
+
+  createList();
+  deleteButton->deleteLater();
+  deleteInput();
 }
 
 void PasswordWidget::createNewItem() {
@@ -204,34 +195,30 @@ void PasswordWidget::createNewItem() {
   layout->addWidget(cancelButton, 5, 0, 1, 1);
 
   connect(saveButton, &QPushButton::clicked, this, [=, this]() {
-    save();
+    save_new();
     deleteInput();
   });
   connect(cancelButton, &QPushButton::clicked, this, [=, this]() {
     deleteInput();
   });
 
-  // TODO: Fix this, doesn't trigger when enter is pressed
   connect(nameInput, &QLineEdit::returnPressed, this, [=, this]() {
-    qDebug() << "name";
-    save();
+    save_new();
     deleteInput();
   });
   connect(usernameInput, &QLineEdit::returnPressed, this, [=, this]() {
-    qDebug() << "username";
-    save();
+    save_new();
     deleteInput();
   });
   connect(passwordInput, &QLineEdit::returnPressed, this, [=, this]() {
-    qDebug() << "password";
-    save();
+    save_new();
     deleteInput();
   });
 
   setLayout(layout);
 }
 
-void PasswordWidget::save() {
+void PasswordWidget::save_new() {
   auto *layout = dynamic_cast<QGridLayout *>(this->layout());
 
   auto *nameInput = dynamic_cast<QLineEdit *>(layout->itemAtPosition(2, 1)->widget());

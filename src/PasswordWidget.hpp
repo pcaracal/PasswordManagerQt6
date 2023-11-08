@@ -29,9 +29,11 @@ private:
 
   void editItem(const int &index);
 
-  void save();
+  void save_new();
 
   void deleteInput();
+
+  void save_edit(const int &index);
 };
 
 
