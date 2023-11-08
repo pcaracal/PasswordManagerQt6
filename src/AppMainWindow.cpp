@@ -36,6 +36,12 @@ void AppMainWindow::loginScreen() {
     this->password = login->getPassword();
     this->username = login->getUsername();
 
+    std::string tmp = FileUtil::read_file(DEVELOPMENT_DATA_PATH);
+    if (tmp.empty() || tmp == "-1") {
+      login->notifyText("Data file empty or doesn't exist, can't login", "red");
+      return;
+    }
+
     json data = FileUtil::read_json(DEVELOPMENT_DATA_PATH);
 
     if (data == nullptr) {
