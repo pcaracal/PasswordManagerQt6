@@ -19,41 +19,15 @@
 std::string StringUtil::generate_salt() {
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> dis(0, 255);
 
   std::stringstream ss;
   for (int i = 0; i < 32; i++) {
-    ss << std::hex << dis(gen);
+    ss << std::hex << gen();
   }
   return StringUtil::sha3_512(ss.str());
 }
 
-
-std::string StringUtil::sha256(std::string input) {
-  EVP_MD_CTX *mdctx;
-  const EVP_MD *md;
-  unsigned char hash[SHA256_DIGEST_LENGTH];
-  unsigned int hash_len;
-
-  md = EVP_sha256();
-  mdctx = EVP_MD_CTX_new();
-
-  EVP_DigestInit_ex(mdctx, md, NULL);
-  EVP_DigestUpdate(mdctx, input.c_str(), input.length());
-  EVP_DigestFinal_ex(mdctx, hash, &hash_len);
-
-  EVP_MD_CTX_free(mdctx);
-
-  std::string output;
-  for (int i = 0; i < hash_len; i++) {
-    char buf[3];
-    sprintf(buf, "%02x", hash[i]);
-    output += buf;
-  }
-  return output;
-}
-
-std::string StringUtil::sha3_512(std::string input) {
+std::string StringUtil::sha3_512(const std::string &input) {
   EVP_MD_CTX *mdctx;
   const EVP_MD *md;
   unsigned char hash[64];
@@ -62,7 +36,7 @@ std::string StringUtil::sha3_512(std::string input) {
   md = EVP_sha3_512();
   mdctx = EVP_MD_CTX_new();
 
-  EVP_DigestInit_ex(mdctx, md, NULL);
+  EVP_DigestInit_ex(mdctx, md, nullptr);
   EVP_DigestUpdate(mdctx, input.c_str(), input.length());
   EVP_DigestFinal_ex(mdctx, hash, &hash_len);
 

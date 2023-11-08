@@ -8,9 +8,7 @@
 
 class StringUtil {
 public:
-  static std::string sha256(std::string input);
-
-  static std::string sha3_512(std::string input);
+  static std::string sha3_512(const std::string &input);
 
   static std::string aes_encrypt(const std::string &input, const std::string &key);
 
